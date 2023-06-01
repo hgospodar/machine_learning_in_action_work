@@ -13,6 +13,17 @@ def createDataSet():
     return group, labels
 
 def classify0(inX, dataSet, labels, k):
+    """classify the input data inX to catergory different in labels
+
+    Args:
+        inX (array): test data
+        dataSet (array): train sets
+        labels (array): labels of train sets
+        k (int): k point decide the catergory of inX
+
+    Returns:
+        int: class of inX
+    """
     dataSetSize = dataSet.shape[0]
     diffMat = tile(inX, (dataSetSize, 1)) - dataSet
     sqDiffMat = diffMat**2
@@ -28,6 +39,15 @@ def classify0(inX, dataSet, labels, k):
     return sortedClassCount[0][0]
 
 def file2matrix(filename):
+    """read datasets from file to matrix
+
+    Args:
+        filename (string): data file
+
+    Returns:
+        returnMat: datasets in the datafile, array
+        classLabelVector: label of returnMat, one arow array
+    """
     love_dictionary = {'largeDoses':3, 'smallDoses':2, 'didntLike':1}
     fr = open(filename)
     arrayOLines = fr.readlines()
@@ -45,4 +65,14 @@ def file2matrix(filename):
             classLabelVector.append(love_dictionary.get(listFromLine[-1]))
         index += 1
     return returnMat,classLabelVector
+
+def autoNorm(dataSet) :
+    minVals = dataSet.min(0)
+    maxVals = dataSet.max(0)
+    ranges = maxVals - minVals
+    normDataSet = zeros(shape(dataSet))
+    m = dataSet.shape[0]
+    normDataSet = dataSet - tile(minVals, (m, 1))
+    normDataSet = normDataSet/tile(ranges, (m, 1))
+    return normDataSet, ranges, minVals
 
