@@ -1,5 +1,6 @@
 from numpy import *
 import operator
+from os import listdir
 
 def createDataSet():
     group = array([[1.0,1.1],
@@ -29,7 +30,7 @@ def classify0(inX, dataSet, labels, k):
     sqDiffMat = diffMat**2
     sqDistances = sqDiffMat.sum(axis=1)
     distances = sqDistances**0.5
-    sortedDistIndicies = distances.argsort()
+    sortedDistIndicies = distances.argsort() # sort the distances in ascending order and return the corresponding index sort vector
     classCount={}
     for i in range(k):
         voteIlabel = labels[sortedDistIndicies[i]]
@@ -87,6 +88,8 @@ def autoNorm(dataSet) :
     return normDataSet, ranges, minVals
 
 def datingClassTest():
+    """test the kNN predict system is feasible or not
+    """
     hoRatio = 0.1 # ratio of test set
     datingDataMat, datingLabels = file2matrix('datingTestSet.txt') # extract data and label
     normMat, ranges, minVals = autoNorm(datingDataMat) # normalize data
@@ -102,6 +105,8 @@ def datingClassTest():
         print("the total error rate is: %f" % (errorCount/float(numTestVecs)))
 
 def classifyPerson():
+    """input the dating person's date, predict like or not
+    """
     resultList = ['not at all', 'in small doses', 'in large doses']
     percentTats = float(input("percentage of time spent playing video games?"))
     ffMiles = float(input("frequent flier miles earned per year?"))
@@ -113,6 +118,14 @@ def classifyPerson():
     print("You will probably like this person: ", resultList[classifierResult-1])
 
 def img2vector(filename):
+    """32*32 image data to 1*1024 vector data
+
+    Args:
+        filename (str): the path and file name of image data
+
+    Returns:
+        returnVect: vector type data
+    """
     returnVect = zeros((1,1024))
     fr = open(filename)
     for i in range(32):
@@ -120,3 +133,32 @@ def img2vector(filename):
         for j in range(32):
             returnVect[0,32*i+j] = int(lineStr[j])
     return returnVect
+
+def handwritingClassTest():
+    """classify the number of the handwritting refer
+    """
+    # load training data
+    hwLabels = []
+    trainingFileList = listdir('trainingDigits')
+    m = len(trainingFileList)
+    trainingMat = zeros((m, 1024))
+    for i in range(m):
+        fileNameStr = trainingFileList[i]
+        fileStr = fileNameStr.split('.')[0]
+        classNumStr = int(fileStr.split('_')[0])
+        hwLabels.append(classNumStr)
+        trainingMat[i,:] = img2vector('trainingDigits/%s' % fileNameStr)
+    # load test data
+    testFileList = listdir('testDigits')
+    errorCount = 0.0
+    mTest = len(testFileList)
+    for i in range(mTest):
+        fileNameStr = testFileList[i]
+        fileStr = fileNameStr.split('.')[0]
+        classNumStr = int(fileStr.split('_')[0])
+        vectorUnderTest = img2vector('testDigits/%s' % fileNameStr)
+        classifierResult = classify0(vectorUnderTest, trainingMat, hwLabels, 3)
+        print("the classifier came back with: %d, the real answer is: %d" % (classifierResult, classNumStr))
+        if (classifierResult != classNumStr): errorCount += 1.0
+    print("\nthe total number of errors is: %d" % errorCount)
+    print("\nthe total error rate is: %f" % (errorCount/float(mTest)))
